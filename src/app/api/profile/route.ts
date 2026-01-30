@@ -4,19 +4,19 @@ const API_URL = process.env.API_URL
 
 export async function GET(request: NextRequest) {
     try {
-        // Obtener el token de las cookies
         const token = request.cookies.get('token')?.value
+        const userId = request.cookies.get('user_id')?.value
         
         if (!token) {
             return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
         }
 
-        // Obtener parámetros de paginación de la URL
-        const { searchParams } = new URL(request.url)
-        const page = searchParams.get('page') || '1'
-        const perPage = searchParams.get('per_page') || '10'
+        if (!userId) {
+            return NextResponse.json({ error: 'Usuario no identificado' }, { status: 401 })
+        }
 
-        const response = await fetch(`${API_URL}/products/?page=${page}&per_page=${perPage}`, {
+        // Obtener el perfil del usuario por ID
+        const response = await fetch(`${API_URL}/users/${userId}/`, {
             headers: {
                 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json',
@@ -24,43 +24,47 @@ export async function GET(request: NextRequest) {
         })
         
         if (!response.ok) {
-            return NextResponse.json({ error: 'Error al obtener productos' }, { status: response.status })
+            return NextResponse.json({ error: 'Error al obtener el perfil' }, { status: response.status })
         }
         
         const data = await response.json()
         return NextResponse.json(data)
     } catch (error) {
-        return NextResponse.json({ error: 'Error fetching products' }, { status: 500 })
+        return NextResponse.json({ error: 'Error fetching profile' }, { status: 500 })
     }
 }
 
-export async function POST(request: NextRequest) {
+export async function PUT(request: NextRequest) {
     try {
-        // Obtener el token de las cookies
         const token = request.cookies.get('token')?.value
+        const userId = request.cookies.get('user_id')?.value
         
         if (!token) {
             return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
         }
 
-        const productData = await request.json()
-        const response = await fetch(`${API_URL}/products/`, {
-            method: 'POST',
+        if (!userId) {
+            return NextResponse.json({ error: 'Usuario no identificado' }, { status: 401 })
+        }
+
+        const profileData = await request.json()
+        const response = await fetch(`${API_URL}/users/${userId}/`, {
+            method: 'PUT',
             headers: {
                 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json',
             },
-            body: JSON.stringify(productData),
+            body: JSON.stringify(profileData),
         })
         
         if (!response.ok) {
             const errorData = await response.json()
-            return NextResponse.json({ error: errorData.message || 'Error creating product' }, { status: response.status })
+            return NextResponse.json({ error: errorData.message || 'Error updating profile' }, { status: response.status })
         }
         
         const data = await response.json()
-        return NextResponse.json(data, { status: 201 })
+        return NextResponse.json(data)
     } catch (error) {
-        return NextResponse.json({ error: 'Error creating product' }, { status: 500 })
+        return NextResponse.json({ error: 'Error updating profile' }, { status: 500 })
     }
 }
