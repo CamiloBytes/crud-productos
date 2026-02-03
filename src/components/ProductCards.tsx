@@ -6,6 +6,7 @@ import { Modal } from '@/components/ui'
 import { AddProductForm } from '@/components/AddProductForm'
 import { EditProductForm } from '@/components/EditProductForm'
 import { Product } from '@/types'
+import { motion } from 'framer-motion'
 import toast from 'react-hot-toast'
 
 // Configuración de estados del backend
@@ -22,12 +23,12 @@ const getStockColor = (stock: number) => {
 }
 
 const getStockTextColor = (stock: number) => {
-    if (stock > 50) return 'text-white'
-    if (stock > 20) return 'text-orange-500'
-    return 'text-red-500'
+    if (stock > 50) return 'text-emerald-400'
+    if (stock > 20) return 'text-orange-400'
+    return 'text-red-400'
 }
 
-export const ProductTable = () => {
+export const ProductCards = () => {
     const { products, pagination, error, loading, currentPage, refetch, goToPage, nextPage, prevPage } = useGetProducts()
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [isEditModalOpen, setIsEditModalOpen] = useState(false)
@@ -169,6 +170,12 @@ export const ProductTable = () => {
                             </svg>
                         </div>
                         <p className="text-slate-400">No hay productos disponibles</p>
+                        <button
+                            onClick={() => setIsModalOpen(true)}
+                            className="mt-2 px-4 py-2 bg-[#135bec] hover:bg-[#1048c7] text-white rounded-lg font-medium transition-colors"
+                        >
+                            Agregar primer producto
+                        </button>
                     </div>
                 </div>
                 <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Agregar Nuevo Producto">
@@ -184,7 +191,13 @@ export const ProductTable = () => {
             <div className="flex items-center justify-between mb-6">
                 <div>
                     <h2 className="text-2xl font-bold text-white">Productos</h2>
-                    <p className="text-slate-400 text-sm mt-1">Gestiona tu inventario de productos</p>
+                    <p className="text-slate-400 text-sm mt-1">
+                        {pagination ? (
+                            <>Mostrando {products.length} de {pagination.total} productos</>
+                        ) : (
+                            <>{products.length} productos</>
+                        )}
+                    </p>
                 </div>
                 <button
                     onClick={() => setIsModalOpen(true)}
@@ -197,115 +210,118 @@ export const ProductTable = () => {
                 </button>
             </div>
 
-            <div className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-sm">
-            <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse">
-                    <thead>
-                        <tr className="bg-slate-800/50 border-b border-slate-800">
-                            <th className="px-6 py-4 text-sm font-bold text-slate-400 uppercase tracking-wider">Producto</th>
-                            <th className="px-6 py-4 text-sm font-bold text-slate-400 uppercase tracking-wider">Categoría</th>
-                            <th className="px-6 py-4 text-sm font-bold text-slate-400 uppercase tracking-wider text-right">Precio</th>
-                            <th className="px-6 py-4 text-sm font-bold text-slate-400 uppercase tracking-wider">Stock</th>
-                            <th className="px-6 py-4 text-sm font-bold text-slate-400 uppercase tracking-wider text-center">Estado</th>
-                            <th className="px-6 py-4 text-sm font-bold text-slate-400 uppercase tracking-wider text-center">Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-800">
-                        {products.map((product) => (
-                            <tr key={product.id} className="hover:bg-slate-800/30 transition-colors group">
-                                <td className="px-6 py-4">
-                                    <div className="flex items-center gap-3">
-                                        {product.image ? (
-                                            <img 
-                                                src={product.image} 
-                                                alt={product.name}
-                                                className="h-10 w-10 rounded-lg object-cover"
-                                            />
-                                        ) : (
-                                            <div className="h-10 w-10 bg-slate-800 rounded-lg flex items-center justify-center text-slate-400">
-                                                📦
-                                            </div>
-                                        )}
-                                        <div className="flex flex-col">
-                                            <span className="font-bold text-slate-100">{product.name}</span>
-                                            <span className="text-xs text-slate-400">SKU: {product.sku}</span>
-                                        </div>
-                                    </div>
-                                </td>
-                                <td className="px-6 py-4">
-                                    <span className="px-3 py-1 bg-slate-800 text-slate-300 rounded-full text-xs font-bold">
-                                        {product.category}
-                                    </span>
-                                </td>
-                                <td className="px-6 py-4 text-right font-mono text-slate-100">
+            {/* Grid de Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+                {products.map((product, index) => (
+                    <motion.div
+                        key={product.id}
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ duration: 0.3, delay: index * 0.05 }}
+                        className="bg-slate-900 border border-slate-800 rounded-xl overflow-hidden hover:border-slate-700 transition-all group"
+                    >
+                        {/* Imagen del producto */}
+                        <div className="relative h-48 bg-slate-800 overflow-hidden">
+                            {product.image ? (
+                                <img 
+                                    src={product.image} 
+                                    alt={product.name}
+                                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                                />
+                            ) : (
+                                <div className="w-full h-full flex items-center justify-center text-6xl">
+                                    📦
+                                </div>
+                            )}
+                            
+                            {/* Badge de estado */}
+                            <div className="absolute top-3 right-3">
+                                <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium backdrop-blur-sm ${statusConfig[product.status]?.bgColor || 'bg-slate-800/80'} ${statusConfig[product.status]?.textColor || 'text-slate-400'}`}>
+                                    {statusConfig[product.status]?.label || product.status}
+                                </span>
+                            </div>
+                        </div>
+
+                        {/* Contenido del card */}
+                        <div className="p-5">
+                            {/* Nombre y SKU */}
+                            <div className="mb-3">
+                                <h3 className="text-lg font-bold text-white mb-1 line-clamp-1">{product.name}</h3>
+                                <p className="text-xs text-slate-500">SKU: {product.sku}</p>
+                            </div>
+
+                            {/* Categoría */}
+                            <div className="mb-4">
+                                <span className="inline-flex items-center px-2.5 py-1 bg-slate-800 text-slate-300 rounded-md text-xs font-medium">
+                                    📂 {product.category}
+                                </span>
+                            </div>
+
+                            {/* Precio */}
+                            <div className="mb-4">
+                                <p className="text-2xl font-bold text-white">
                                     ${Number(product.price).toFixed(2)}
-                                </td>
-                                <td className="px-6 py-4">
-                                    <div className="flex items-center gap-3 min-w-[140px]">
-                                        <div className="flex-1 h-1.5 bg-slate-800 rounded-full overflow-hidden">
-                                            <div
-                                                className={`h-full ${getStockColor(product.stock)} rounded-full`}
-                                                style={{ width: `${Math.min(product.stock, 100)}%` }}
-                                            />
-                                        </div>
-                                        <span className={`text-sm font-bold w-8 ${getStockTextColor(product.stock)}`}>
-                                            {product.stock}
-                                        </span>
-                                    </div>
-                                </td>
-                                <td className="px-6 py-4 text-center">
-                                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusConfig[product.status]?.bgColor || 'bg-slate-800'} ${statusConfig[product.status]?.textColor || 'text-slate-400'}`}>
-                                        {statusConfig[product.status]?.label || product.status}
+                                </p>
+                            </div>
+
+                            {/* Stock con barra de progreso */}
+                            <div className="mb-4">
+                                <div className="flex items-center justify-between mb-2">
+                                    <span className="text-sm text-slate-400">Stock</span>
+                                    <span className={`text-sm font-bold ${getStockTextColor(product.stock)}`}>
+                                        {product.stock} unidades
                                     </span>
-                                </td>
-                                <td className="px-6 py-4">
-                                    <div className="flex items-center justify-center gap-2">
-                                        <button 
-                                            onClick={() => handleEditClick(product)}
-                                            className="text-slate-400 hover:text-[#135bec] transition-colors p-1"
-                                            title="Editar"
-                                        >
-                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                                            </svg>
-                                        </button>
-                                        <button 
-                                            onClick={() => handleDeleteClick(product)}
-                                            className="text-slate-400 hover:text-red-500 transition-colors p-1"
-                                            title="Eliminar"
-                                        >
-                                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                            </svg>
-                                        </button>
-                                    </div>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
+                                </div>
+                                <div className="w-full h-2 bg-slate-800 rounded-full overflow-hidden">
+                                    <div
+                                        className={`h-full ${getStockColor(product.stock)} rounded-full transition-all`}
+                                        style={{ width: `${Math.min((product.stock / 100) * 100, 100)}%` }}
+                                    />
+                                </div>
+                            </div>
+
+                            {/* Botones de acción */}
+                            <div className="grid grid-cols-2 gap-2">
+                                <button
+                                    onClick={() => handleEditClick(product)}
+                                    className="flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-800 hover:bg-[#135bec] text-slate-300 hover:text-white rounded-lg font-medium transition-colors"
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                    </svg>
+                                    Editar
+                                </button>
+                                <button
+                                    onClick={() => handleDeleteClick(product)}
+                                    className="flex items-center justify-center gap-2 px-4 py-2.5 bg-slate-800 hover:bg-red-600 text-slate-300 hover:text-white rounded-lg font-medium transition-colors"
+                                >
+                                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                    </svg>
+                                    Eliminar
+                                </button>
+                            </div>
+                        </div>
+                    </motion.div>
+                ))}
             </div>
 
-            {/* Table Footer */}
-            <div className="px-6 py-4 bg-slate-800/50 flex items-center justify-between border-t border-slate-800">
-                <span className="text-sm text-slate-400 font-medium">
-                    {pagination ? (
-                        <>Mostrando {products.length} de {pagination.total} productos</>
-                    ) : (
-                        <>{products.length} productos</>
-                    )}
-                </span>
-                <div className="flex items-center gap-2">
-                    <button
-                        onClick={prevPage}
-                        disabled={currentPage <= 1}
-                        className="px-3 py-1 border border-slate-700 rounded-lg text-sm text-slate-400 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-800 transition-colors"
-                    >
-                        Anterior
-                    </button>
-                    
-                    {/* Números de página */}
-                    {pagination && (
+            {/* Paginación */}
+            {pagination && pagination.last_page > 1 && (
+                <div className="bg-slate-900 border border-slate-800 rounded-xl px-6 py-4 flex items-center justify-between">
+                    <span className="text-sm text-slate-400 font-medium">
+                        Página {currentPage} de {pagination.last_page}
+                    </span>
+                    <div className="flex items-center gap-2">
+                        <button
+                            onClick={prevPage}
+                            disabled={currentPage <= 1}
+                            className="px-3 py-1 border border-slate-700 rounded-lg text-sm text-slate-400 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-800 transition-colors"
+                        >
+                            Anterior
+                        </button>
+                        
+                        {/* Números de página */}
                         <div className="flex gap-1">
                             {Array.from({ length: pagination.last_page }, (_, i) => i + 1)
                                 .filter(page => {
@@ -339,24 +355,17 @@ export const ProductTable = () => {
                                 })
                             }
                         </div>
-                    )}
-                    
-                    {!pagination && (
-                        <button className="px-3 py-1 bg-[#135bec] text-white rounded-lg text-sm font-bold">
-                            1
+                        
+                        <button
+                            onClick={nextPage}
+                            disabled={currentPage >= pagination.last_page}
+                            className="px-3 py-1 border border-slate-700 rounded-lg text-sm text-slate-400 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-800 transition-colors"
+                        >
+                            Siguiente
                         </button>
-                    )}
-                    
-                    <button
-                        onClick={nextPage}
-                        disabled={!pagination || currentPage >= pagination.last_page}
-                        className="px-3 py-1 border border-slate-700 rounded-lg text-sm text-slate-400 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-800 transition-colors"
-                    >
-                        Siguiente
-                    </button>
+                    </div>
                 </div>
-            </div>
-        </div>
+            )}
 
             {/* Modal para agregar producto */}
             <Modal

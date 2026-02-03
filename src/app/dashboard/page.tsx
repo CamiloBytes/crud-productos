@@ -1,5 +1,5 @@
 import { Navbar } from '@/components/Navbar'
-import { ProductTable } from '@/components/ProductTable'
+import { ProductCards } from '@/components/ProductCards'
 
 export default function DashboardPage() {
     return (
@@ -11,8 +11,8 @@ export default function DashboardPage() {
             <main className="p-8">
                 <div className='max-w-7xl mx-auto'>
 
-                    {/* Products Table */}
-                    <ProductTable />
+                    {/* Products Cards */}
+                    <ProductCards />
                 
                 </div>
             </main>

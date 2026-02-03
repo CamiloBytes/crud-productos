@@ -43,14 +43,24 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
         }
 
-        const productData = await request.json()
+        // Obtener FormData con posible imagen
+        const formData = await request.formData()
+        
+        // Crear FormData para enviar al backend
+        const backendFormData = new FormData()
+        
+        // Copiar todos los campos al FormData del backend
+        formData.forEach((value, key) => {
+            backendFormData.append(key, value)
+        })
+
         const response = await fetch(`${API_URL}/products/`, {
             method: 'POST',
             headers: {
                 'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json',
+                // NO incluir Content-Type, fetch lo establecerá automáticamente con boundary
             },
-            body: JSON.stringify(productData),
+            body: backendFormData,
         })
         
         if (!response.ok) {
@@ -61,6 +71,7 @@ export async function POST(request: NextRequest) {
         const data = await response.json()
         return NextResponse.json(data, { status: 201 })
     } catch (error) {
+        console.error('Error creating product:', error)
         return NextResponse.json({ error: 'Error creating product' }, { status: 500 })
     }
 }

@@ -9,7 +9,7 @@ export interface Product {
     price: string | number
     stock: number
     status: Status
-    avatar?: string
+    image?: string
     created_at?: string
     updated_at?: string
 }
@@ -22,6 +22,7 @@ export interface CreateProductData {
     stock: number
     status: string
     avatar?: string
+    image?: File | string
 }
 
 export interface UpdateProductData extends Partial<CreateProductData> {
